@@ -24,14 +24,56 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 storage = MemoryStorage()
 logging.basicConfig(level=logging.INFO)
 
+def url_valid(url):
+    try:
+        YouTube(url).streams.first()
+        return True
+    except:
+        return False
+
+
 @dp.message_handler(commands=['start'])
 async def start(message:types.Message):
     await message.answer(f'Здравствуйте {message.from_user.full_name}', reply_markup=button)
+    await message.answer("Этот бот способен скачивать видео или аудио с платформы Youtube.")
+    await message.answer("Если запутаетесь в командах напишите /help")
+
+@dp.message_handler(commands=['help'])
+async def helper(message:types.Message):
+    await message.answer("Вот список команд бота:\n/video - для скачивания видеороликов\n/audio - для скачивания аудио из видеороликов")
 
 class DownloadVideo(StatesGroup):
     download = State()
 
+class DownloadAudio(StatesGroup):
+    downloadaud = State()
 
+@dp.message_handler(commands=['audio'])
+async def audio(message:types.Message):
+    await message.reply("Отправьте ссылку на аудио и оно будет скачано.")
+    await DownloadAudio.downloadaud.set()
+
+@dp.message_handler(state=DownloadAudio.downloadaud)
+async def download_audio(message:types.Message, state:FSMContext):
+    print(url_valid(message.text))
+    if url_valid(message.text) == True:
+
+        await message.answer("Скачиваем аудио")
+        aud_yt = YouTube(message.text)
+        await message.reply(f'{aud_yt.title}')
+        audio = aud_yt.streams.filter(only_audio=True).first().download('audio', f'{aud_yt.title}.mp3')
+
+        try:
+            await message.answer("Отправляем аудио...")
+            with open(audio, 'rb') as down_audio:
+                await message.answer_audio(down_audio)
+                os.remove(audio)
+        except:
+            await message.answer("Произошла ошибка при скачивании")
+        await state.finish()
+
+    else:
+            await message.reply("Отправленная вами ссылка недействительна. Отправьте ссылку на Youtube видео.")
 
 @dp.message_handler(commands=['video'])
 async def video(message:types.Message):
@@ -40,19 +82,26 @@ async def video(message:types.Message):
 
 @dp.message_handler(state=DownloadVideo.download)
 async def download_video(message:types.Message, state:FSMContext):
-    await message.answer("Скачиваем видео")
-    yt = YouTube(message.text)
-    await message.reply(f'{yt.title}')
-    video = yt.streams.filter(progressive=True, file_extension="mp4").order_by('resolution').desc().first().download('video', f"{yt.title}.mp4")
+    if url_valid( message.text) == True:
+        await message.answer("Скачиваем видео")
+        yt = YouTube(message.text)
+        await message.reply(f'{yt.title}')
+        video = yt.streams.filter(progressive=True, file_extension="mp4").order_by('resolution').desc().first().download('video', f"{yt.title}.mp4")
 
-    try:
-        await message.answer("Отправляем видео...")
-        with open(video, 'rb') as down_video:
-            await message.answer_video(down_video)
-    except:
-        await message.answer("Произошла ошибка при скачивании")
-    await state.finish()
+        try:
+            await message.answer("Отправляем видео...")
+            with open(video, 'rb') as down_video:
+                await message.answer_video(down_video)
+                
+        except:
+            await message.answer("Произошла ошибка при скачивании")
+        await state.finish()
 
+        
+    else:
+        await message.reply("Отправленная вами ссылка недействительна. Отправьте ссылку на Youtube видео.")
+
+    
 
 @dp.message_handler()
 async def nothing(message:types.Message):
