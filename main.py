@@ -8,6 +8,7 @@ from pytube import YouTube
 import os
 import logging
 
+
 load_dotenv(".env")
 
 buttons = [
@@ -23,6 +24,7 @@ bot = Bot(os.environ.get('TOKEN'))
 dp = Dispatcher(bot, storage=MemoryStorage())
 storage = MemoryStorage()
 logging.basicConfig(level=logging.INFO)
+
 
 def url_valid(url):
     try:
@@ -55,7 +57,6 @@ async def audio(message:types.Message):
 
 @dp.message_handler(state=DownloadAudio.downloadaud)
 async def download_audio(message:types.Message, state:FSMContext):
-    print(url_valid(message.text))
     if url_valid(message.text) == True:
 
         await message.answer("Скачиваем аудио")
@@ -70,6 +71,7 @@ async def download_audio(message:types.Message, state:FSMContext):
                 os.remove(audio)
         except:
             await message.answer("Произошла ошибка при скачивании")
+            os.remove(audio)
         await state.finish()
 
     else:
@@ -92,9 +94,11 @@ async def download_video(message:types.Message, state:FSMContext):
             await message.answer("Отправляем видео...")
             with open(video, 'rb') as down_video:
                 await message.answer_video(down_video)
+                os.remove(video)
                 
         except:
             await message.answer("Произошла ошибка при скачивании")
+            os.remove(video)
         await state.finish()
 
         
