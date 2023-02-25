@@ -76,11 +76,11 @@ async def download_audio(message:types.Message, state:FSMContext):
                 os.remove(audio)
         except:
             await message.answer("Произошла ошибка при скачивании")
-            os.remove(audio)
-        await state.finish()
+            os.remove(audio)   
     else:
             await message.reply("Отправленная вами ссылка недействительна. Отправьте ссылку на Youtube видео.")
-
+   
+    await state.finish()
 @dp.message_handler(commands=['video'])
 async def video(message:types.Message):
     await message.reply("Отправьте ссылку на видео и оно будет скачано.")
@@ -100,11 +100,11 @@ async def download_video(message:types.Message, state:FSMContext):
                 os.remove(video)
         except:
             await message.answer("Произошла ошибка при скачивании")
-            os.remove(video)
-        await state.finish()
+            os.remove(video) 
     else:
         await message.reply("Отправленная вами ссылка недействительна. Отправьте ссылку на Youtube видео.")
-
+    
+    await state.finish()
 @dp.message_handler(commands=['mailing'])
 async def mailing(message:types.Message):
     if message.from_user.id == 731982105:
