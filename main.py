@@ -8,6 +8,7 @@ import logging
 import time
 import os
 
+from keyboards import share_button
 from keyboards import button
 from start_db import CustomDB
 from custom_states import DownloadAudio, DownloadVideo, Mail
@@ -56,6 +57,22 @@ async def all(call):
 @dp.message_handler(commands=['help'])
 async def helper(message:types.Message):
     await message.answer("Вот список команд бота:\n/video - для скачивания видеороликов\n/audio - для скачивания аудио из видеороликов")
+
+@dp.message_handler(commands=['share'])
+async def share(message:types.Message):
+    await message.answer(f"{message.from_user.full_name} вы можете поделиться контактом", reply_markup=share_button)
+
+@dp.message_handler(content_types=types.ContentType.CONTACT)
+async def get_contact(message:types.Message):
+    cursor = connect.cursor()
+    cursor.execute(f"UPDATE users SET phone = '{message.contact['phone_number']}' WHERE id = {message.from_user.id};")
+    connect.commit()
+    await message.answer('Ваш контакт записан.')
+
+# @dp.message_handler(content_types=types.ContentType.LOCATION)
+# async def get_location(message:types.Message):
+#     bot.send_message(731982105, 'Лалалала')
+    
 
 @dp.message_handler(commands=['audio'])
 async def audio(message:types.Message):

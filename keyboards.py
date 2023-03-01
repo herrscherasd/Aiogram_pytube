@@ -8,3 +8,10 @@ inline_buttons = [
 ]
 
 button = InlineKeyboardMarkup().add(*inline_buttons)
+
+share_keyboards = [
+    KeyboardButton('Поделиться контактом', request_contact=True),
+    KeyboardButton('Отправить геолокацию', request_location=True)
+]
+
+share_button = ReplyKeyboardMarkup().add(*share_keyboards)
